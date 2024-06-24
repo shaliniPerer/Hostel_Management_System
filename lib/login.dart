@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:untitled1/signup.dart';
-import 'package:untitled1/staff.dart';
 import 'package:untitled1/student.dart';
 
 class login extends StatefulWidget {
