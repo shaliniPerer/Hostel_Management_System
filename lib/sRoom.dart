@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:untitled1/student.dart';
+import 'package:untitled1/sRoom.dart';
+import 'package:untitled1/sMark.dart';
+import 'package:untitled1/sRequest.dart';
+import 'package:untitled1/sComplain.dart';
+import 'package:untitled1/sMessage.dart';
+import 'package:untitled1/student.dart';
 
 class sRoom extends StatefulWidget {
   const sRoom({super.key});
@@ -141,10 +148,49 @@ class _sRoomState extends State<sRoom> {
           Icon(Icons.message, size: 26, color: Colors.white),
         ],
         onTap: (index) {
-          setState(() {
-            _page = index;
-            // Update _page or navigate to a different screen based on index
-          });
+          // Handle navigation based on the selected index
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Student(username: "username"),
+                ),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => sRoom()),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => sRequest()),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => sMessage()),
+              );
+              break;
+            case 4:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => sRoom(),
+                ),
+              );
+              break;
+            case 5:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => sComplain()),
+              );
+              break;
+          }
         },
       ),
     );

@@ -73,10 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ?.copyWith(
                         color: Colors.black),
                   ),
-                  trailing: const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/images/user.JPG'),
-                  ),
+
                 ),
                 const SizedBox(height: 30)
               ],
@@ -132,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   ),
                   itemDashboard(
-                    'Complaints',
+                    'Complains',
                     Icons.report_problem,
                     Colors.red,
                         () {
@@ -149,7 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => sNotifications()),
+                        MaterialPageRoute(builder: (context) => sNotification(username: widget.username)),
                       );
                     },
                   ),
