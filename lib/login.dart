@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:untitled1/signup.dart';
-import 'package:untitled1/student.dart';
-import 'package:untitled1/warden.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:untitled1/authentication.dart';
+import 'student.dart';
+import 'warden.dart';
+import 'signup.dart';
 
 class Login extends StatefulWidget {
   Login({Key? key}) : super(key: key);
@@ -17,33 +16,40 @@ class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  final AuthMethod _authMethod = AuthMethod();
 
   void _login() async {
-    String res = await _authMethod.loginUser(
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
 
-    if (res.startsWith("success_")) {
-      String role = res.split("_")[1];
+      // Fetch user data from Firestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
+
+      String role = userDoc['role'];
+
       if (role == 'student') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Student(username: " ")),
+          MaterialPageRoute(builder: (context) => Student(username: userDoc['username'])),
         );
       } else if (role == 'warden') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => warden(username: " ")),
+          MaterialPageRoute(builder: (context) => warden(username: userDoc['username'])),
         );
       }
-    } else {
+    } catch (e) {
+      print("Error: $e");
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text('Login Failed'),
-          content: Text(res),
+          content: Text(e.toString()),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

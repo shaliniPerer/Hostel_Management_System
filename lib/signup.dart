@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login.dart';
 
 class Signup extends StatefulWidget {
@@ -13,6 +14,7 @@ class _SignupState extends State<Signup> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String _selectedRole = 'student'; // Default role
   bool _isPasswordVisible = false;
 
   void _signup() async {
@@ -21,6 +23,14 @@ class _SignupState extends State<Signup> {
         email: _emailController.text,
         password: _passwordController.text,
       );
+
+      // Save user info and role in Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+        'email': _emailController.text,
+        'username': _usernameController.text,
+        'role': _selectedRole,
+      });
+
       print("Account created successfully");
       Navigator.pushReplacement(
         context,
@@ -155,6 +165,25 @@ class _SignupState extends State<Signup> {
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
+                              ),
+                              const SizedBox(height: 16),
+                              DropdownButton<String>(
+                                value: _selectedRole,
+                                items: <DropdownMenuItem<String>>[
+                                  DropdownMenuItem(
+                                    value: 'student',
+                                    child: Text('Student'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'warden',
+                                    child: Text('Warden'),
+                                  ),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedRole = value!;
+                                  });
+                                },
                               ),
                               const SizedBox(height: 20),
                               ElevatedButton(

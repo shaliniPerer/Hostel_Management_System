@@ -1,74 +1,51 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AuthMethod {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // SignUp User
-  Future<String> signupUser({
-    required String email,
-    required String password,
-    required String name,
-    required String role, // added role parameter
-  }) async {
-    String res = "Some error Occurred";
+  // Sign up with email and password
+  Future<User?> signUpWithEmailAndPassword(String email, String password, String role) async {
     try {
-      if (email.isNotEmpty && password.isNotEmpty && name.isNotEmpty && role.isNotEmpty) {
-        // Register user in auth with email and password
-        UserCredential cred = await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      User? user = result.user;
 
-        // Add user to Firestore database
-        await _firestore.collection("users").doc(cred.user!.uid).set({
-          'name': name,
-          'uid': cred.user!.uid,
-          'email': email,
-          'role': role, // store the role
-        });
+      // Add user to Firestore with a role
+      await _firestore.collection('users').doc(user!.uid).set({
+        'email': email,
+        'role': role, // "admin" or "user"
+      });
 
-        res = "Successfully Registered";
-      } else {
-        res = "Please enter all the fields";
-      }
-    } catch (err) {
-      res = err.toString();
+      return user;
+    } catch (error) {
+      print(error.toString());
+      return null;
     }
-    return res;
   }
 
-  // LogIn User
-  Future<String> loginUser({
-    required String email,
-    required String password,
-  }) async {
-    String res = "Some error Occurred";
+  // Sign in with email and password
+  Future<User?> signInWithEmailAndPassword(String email, String password) async {
     try {
-      if (email.isNotEmpty && password.isNotEmpty) {
-        // Logging in user with email and password
-        UserCredential cred = await _auth.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-
-        // Fetch user role from Firestore
-        DocumentSnapshot snap = await _firestore.collection("users").doc(cred.user!.uid).get();
-        String role = snap['role'];
-
-        // Navigate to appropriate screen based on role
-        res = "success_$role";
-      } else {
-        res = "Please enter all the fields";
-      }
-    } catch (err) {
-      res = err.toString();
+      UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return result.user;
+    } catch (error) {
+      print(error.toString());
+      return null;
     }
-    return res;
   }
 
-  // SignOut
+  // Get user role
+  Future<String?> getUserRole() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+      return userDoc.data()?['role'];
+    }
+    return null;
+  }
+
+  // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
   }
