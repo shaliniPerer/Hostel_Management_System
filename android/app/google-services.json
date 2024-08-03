@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1023076272590",
+    "project_id": "hostelse-35ff6",
+    "storage_bucket": "hostelse-35ff6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1023076272590:android:f053abfbcc96b1e7b4c39f",
+        "android_client_info": {
+          "package_name": "com.example.hostelapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrXvWjvO4kFOlZF5TxlP-AYTjShUtAXfg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1023076272590:android:a02d3f6e8f053397b4c39f",
+        "android_client_info": {
+          "package_name": "com.example.untitled1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrXvWjvO4kFOlZF5TxlP-AYTjShUtAXfg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

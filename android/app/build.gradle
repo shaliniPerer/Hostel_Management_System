@@ -1,0 +1,59 @@
+plugins {
+    id "com.android.application"
+    // START: FlutterFire Configuration
+    // END: FlutterFire Configuration
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+    id 'com.google.gms.google-services'
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode", "1").toInteger()
+def flutterVersionName = localProperties.getProperty("flutter.versionName", "1.0")
+
+ext {
+    kotlin_version = '1.8.22' // Define the Kotlin version here
+}
+
+android {
+    namespace = "com.example.hostelapp"
+    compileSdk = localProperties.getProperty("flutter.compileSdkVersion", "34").toInteger()
+    ndkVersion = localProperties.getProperty("flutter.ndkVersion")
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.example.hostelapp"
+        minSdk = localProperties.getProperty("flutter.minSdkVersion", "23").toInteger()
+        targetSdk = localProperties.getProperty("flutter.targetSdkVersion", "33").toInteger()
+        versionCode = flutterVersionCode
+        versionName = flutterVersionName
+    }
+
+    buildTypes {
+        release {
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+configurations.implementation {
+    exclude group: 'org.jetbrains.kotlin' , module: 'kotlin-stdlib-jdk8'
+}
