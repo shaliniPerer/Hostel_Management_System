@@ -14,7 +14,7 @@ class Complains extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Complaints'),
+        title: Text('Complainjkjlllllts'),
         backgroundColor: Colors.blue,
       ),
       body: Center(
