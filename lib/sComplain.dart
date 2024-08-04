@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class sComplain extends StatefulWidget {
   const sComplain({super.key});
 
   @override
-  State<sComplain> createState() => _ReportProblemState();
+  State<sComplain> createState() => _sComplainState();
 }
 
-class _ReportProblemState extends State<sComplain> {
+class _sComplainState extends State<sComplain> {
+  final TextEditingController _usernameController = TextEditingController();
   String? selectedCategory;
   String? problemDescription;
   int _page = 0;
@@ -18,6 +20,50 @@ class _ReportProblemState extends State<sComplain> {
     'Emergency',
     'Other'
   ];
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  // Reference to the Firebase Realtime Database
+  final DatabaseReference databaseRef = FirebaseDatabase.instance.ref();
+
+  void _submitRequest() {
+    if (selectedCategory != null && problemDescription != null && problemDescription!.isNotEmpty) {
+      // Data to be sent to Firebase
+      Map<String, dynamic> requestData = {
+        'category': selectedCategory,
+        'description': problemDescription,
+        'timestamp': DateTime.now().toIso8601String(),
+        'status': 'pending', // Default status
+        'username': _usernameController.text,
+      };
+
+      // Push the request data to Firebase Realtime Database
+      databaseRef.child('complains').push().set(requestData).then((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Complain submitted successfully!')),
+        );
+
+        // Clear the form
+        setState(() {
+          selectedCategory = null;
+          problemDescription = null;
+          _usernameController.clear();
+        });
+      }).catchError((error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit complain: $error')),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select a category and provide a description.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,24 +134,8 @@ class _ReportProblemState extends State<sComplain> {
               },
             ),
             SizedBox(height: 30),
-
             ElevatedButton(
-              onPressed: () {
-                if (selectedCategory != null && problemDescription != null && problemDescription!.isNotEmpty) {
-                  // Handle the request button press
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Problem Category: $selectedCategory, Description: $problemDescription reported!'),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please select a category and provide a description.'),
-                    ),
-                  );
-                }
-              },
+              onPressed: _submitRequest, // Updated to call _submitRequest
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(

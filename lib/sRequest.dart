@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class sRequest extends StatefulWidget {
   const sRequest({super.key});
 
   @override
-  State<sRequest> createState() => _ReportProblemState();
+  State<sRequest> createState() => _sRequestState();
 }
 
-class _ReportProblemState extends State<sRequest> {
+class _sRequestState extends State<sRequest> {
+  final TextEditingController _usernameController = TextEditingController();
   String? selectedCategory;
   String? problemDescription;
   int _page = 0;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
 
   final List<String> categories = [
     'Electricity',
@@ -20,6 +29,43 @@ class _ReportProblemState extends State<sRequest> {
     'Student',
     'Other'
   ];
+
+  // Reference to the Firebase Realtime Database
+  final DatabaseReference databaseRef = FirebaseDatabase.instance.ref();
+
+  void _submitRequest() {
+    if (selectedCategory != null && problemDescription != null && problemDescription!.isNotEmpty) {
+      // Data to be sent to Firebase
+      Map<String, dynamic> requestData = {
+        'category': selectedCategory,
+        'description': problemDescription,
+        'timestamp': DateTime.now().toIso8601String(),
+        'status': 'pending', // Default status
+        'username': _usernameController.text,
+      };
+
+      // Push the request data to Firebase Realtime Database
+      databaseRef.child('requests').push().set(requestData).then((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Request submitted successfully!')),
+        );
+
+        // Clear the form
+        setState(() {
+          selectedCategory = null;
+          problemDescription = null;
+        });
+      }).catchError((error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit request: $error')),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select a category and provide a description.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,24 +136,8 @@ class _ReportProblemState extends State<sRequest> {
               },
             ),
             SizedBox(height: 30),
-
             ElevatedButton(
-              onPressed: () {
-                if (selectedCategory != null && problemDescription != null && problemDescription!.isNotEmpty) {
-                  // Handle the request button press
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Problem Category: $selectedCategory, Description: $problemDescription reported!'),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please select a category and provide a description.'),
-                    ),
-                  );
-                }
-              },
+              onPressed: _submitRequest,
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -145,3 +175,4 @@ class _ReportProblemState extends State<sRequest> {
     );
   }
 }
+

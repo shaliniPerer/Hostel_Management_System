@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:untitled1/student.dart';
-import 'package:untitled1/sRoom.dart';
-import 'package:untitled1/sMark.dart';
-import 'package:untitled1/sRequest.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:untitled1/sComplain.dart';
 import 'package:untitled1/sMessage.dart';
+import 'package:untitled1/sRequest.dart';
 import 'package:untitled1/student.dart';
 
 class sRoom extends StatefulWidget {
@@ -18,10 +16,12 @@ class sRoom extends StatefulWidget {
 class _sRoomState extends State<sRoom> {
   String? selectedRoom;
   String? selectedBed;
-  int _page = 0;
 
   final List<String> rooms = ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Room 5'];
   final List<String> beds = ['Bed 1', 'Bed 2', 'Bed 3'];
+
+  // Reference to the Firebase Realtime Database
+  final DatabaseReference databaseRef = FirebaseDatabase.instance.ref('room_requests');
 
   @override
   Widget build(BuildContext context) {
@@ -105,19 +105,40 @@ class _sRoomState extends State<sRoom> {
             ElevatedButton(
               onPressed: () {
                 if (selectedRoom != null && selectedBed != null) {
-                  // Handle the request button press
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Room: $selectedRoom, Bed: $selectedBed requested!'),
-                    ),
-                  );
+                  // Prepare the data to be sent to Firebase
+                  Map<String, dynamic> requestData = {
+                    'room': selectedRoom,
+                    'bed': selectedBed,
+                    'timestamp': DateTime.now().toIso8601String(),
+                    'status': 'pending', // Default status
+                  };
+
+                  // Push the request data to Firebase Realtime Database
+                  databaseRef.push().set(requestData).then((_) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Room: $selectedRoom, Bed: $selectedBed requested successfully!'),
+                      ),
+                    );
+
+                    // Clear the form
+                    setState(() {
+                      selectedRoom = null;
+                      selectedBed = null;
+                    });
+                  }).catchError((error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to request room: $error'),
+                      ),
+                    );
+                  });
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Please select both room and bed.'),
                     ),
                   );
-
                 }
               },
               style: ElevatedButton.styleFrom(
