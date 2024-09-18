@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:untitled1/sComplain.dart';
-import 'package:untitled1/sMessage.dart';
-import 'package:untitled1/sRequest.dart';
-import 'package:untitled1/student.dart';
 
 class sRoom extends StatefulWidget {
   const sRoom({super.key});
@@ -17,21 +13,56 @@ class _sRoomState extends State<sRoom> {
   String? selectedRoom;
   String? selectedBed;
 
-  final List<String> rooms = ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Room 5'];
-  final List<String> beds = ['Bed 1', 'Bed 2', 'Bed 3'];
+  List<String> rooms = [];
+  List<String> beds = [];
 
   // Reference to the Firebase Realtime Database
-  final DatabaseReference databaseRef = FirebaseDatabase.instance.ref('room_requests');
+  final DatabaseReference databaseRef = FirebaseDatabase.instance.ref('rooms');
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRooms(); // Fetch rooms when the screen is initialized
+  }
+
+  // Function to fetch available rooms from Firebase
+  void _fetchRooms() {
+    databaseRef.onValue.listen((event) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+
+      if (data != null) {
+        setState(() {
+          rooms = data.keys.map((room) => room.toString()).toList();
+        });
+      }
+    });
+  }
+
+  // Function to fetch available beds for the selected room
+  void _fetchBeds(String room) {
+    databaseRef.child(room).onValue.listen((event) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+
+      if (data != null) {
+        setState(() {
+          beds = data.entries
+              .where((entry) => entry.value == 'available')
+              .map((entry) => entry.key)
+              .toList();
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(100.0), // Set the height of the AppBar
+        preferredSize: const Size.fromHeight(100.0), // Set the height of the AppBar
         child: AppBar(
           backgroundColor: Colors.blueAccent,
           centerTitle: true,
-          title: Text(
+          title: const Text(
             'Room Availability',
             style: TextStyle(
               fontFamily: 'RobotoMono',
@@ -46,7 +77,8 @@ class _sRoomState extends State<sRoom> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
+            // Dropdown for selecting room
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: 'Select Room Number',
@@ -55,25 +87,28 @@ class _sRoomState extends State<sRoom> {
                 ),
                 filled: true,
                 fillColor: Colors.blueAccent.withOpacity(0.1),
-                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
               items: rooms.map((room) {
                 return DropdownMenuItem(
                   value: room,
                   child: Text(
                     room,
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 );
               }).toList(),
               onChanged: (value) {
                 setState(() {
                   selectedRoom = value;
+                  selectedBed = null; // Clear the selected bed when room changes
+                  _fetchBeds(value!); // Fetch beds for the selected room
                 });
               },
               value: selectedRoom,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
+            // Dropdown for selecting bed
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: 'Select Available Bed',
@@ -82,14 +117,14 @@ class _sRoomState extends State<sRoom> {
                 ),
                 filled: true,
                 fillColor: Colors.blueAccent.withOpacity(0.1),
-                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
               items: beds.map((bed) {
                 return DropdownMenuItem(
                   value: bed,
                   child: Text(
                     bed,
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 );
               }).toList(),
@@ -100,8 +135,9 @@ class _sRoomState extends State<sRoom> {
               },
               value: selectedBed,
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
 
+            // Request button
             ElevatedButton(
               onPressed: () {
                 if (selectedRoom != null && selectedBed != null) {
@@ -114,7 +150,7 @@ class _sRoomState extends State<sRoom> {
                   };
 
                   // Push the request data to Firebase Realtime Database
-                  databaseRef.push().set(requestData).then((_) {
+                  FirebaseDatabase.instance.ref('room_requests').push().set(requestData).then((_) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Room: $selectedRoom, Bed: $selectedBed requested successfully!'),
@@ -135,22 +171,22 @@ class _sRoomState extends State<sRoom> {
                   });
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text('Please select both room and bed.'),
                     ),
                   );
                 }
               },
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
                 backgroundColor: Colors.blueAccent,
                 foregroundColor: Colors.white,
-                textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              child: Text('Request'),
+              child: const Text('Request'),
             ),
           ],
         ),
@@ -169,49 +205,7 @@ class _sRoomState extends State<sRoom> {
           Icon(Icons.message, size: 26, color: Colors.white),
         ],
         onTap: (index) {
-          // Handle navigation based on the selected index
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Student(username: "username"),
-                ),
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => sRoom()),
-              );
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => sRequest()),
-              );
-              break;
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => sMessage()),
-              );
-              break;
-            case 4:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => sRoom(),
-                ),
-              );
-              break;
-            case 5:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => sComplain()),
-              );
-              break;
-          }
+          // Handle navigation
         },
       ),
     );

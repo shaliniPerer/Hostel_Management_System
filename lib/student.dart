@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:untitled1/navigation.dart';
 import 'package:untitled1/sRoom.dart';
 import 'package:untitled1/sMark.dart';
 import 'package:untitled1/sRequest.dart';
 import 'package:untitled1/sComplain.dart';
 import 'package:untitled1/sNotifications.dart';
 import 'package:untitled1/sMessage.dart';
+import 'package:untitled1/navigation.dart';
+
 
 class Student extends StatefulWidget {
   final String username;
@@ -40,6 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: NavBar(),
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -79,6 +83,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
+
+
           Container(
             color: Colors.blue,
             child: Container(
